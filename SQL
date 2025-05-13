@@ -1,0 +1,80 @@
+
+
+SELECT
+    TOP 100 *
+FROM
+    OPENROWSET(
+        BULK 'https://hrithiksynapsestorage.dfs.core.windows.net/synapsefilesys/first_100_customers.csv',
+        FORMAT = 'CSV',
+        PARSER_VERSION = '2.0'
+    ) AS [result]
+
+
+
+SELECT
+    TOP 100 *
+FROM
+    OPENROWSET(
+        BULK 'https://hrithikstorageolist.dfs.core.windows.net/olistdata/silver/',
+        FORMAT = 'PARQUET'
+) AS result1
+
+--https://hrithikstorageolist.blob.core.windows.net/olistdata/silver/
+
+
+
+CREATE SCHEMA gold
+CREATE VIEW gold.final
+AS
+SELECT
+    *
+FROM
+    OPENROWSET(
+        BULK 'https://hrithikstorageolist.dfs.core.windows.net/olistdata/silver/',
+        FORMAT = 'PARQUET'
+) as result1
+
+SELECT * FROM gold.final
+
+
+select * from gold.final
+
+
+
+
+
+
+
+
+--DROP MASTER KEY;
+--CREATE DATABASE SCOPED CREDENTIAL hrithikadmin WITH IDENTITY = 'Managed Identity';
+
+--CREATE MASTER KEY ENCRYPTION BY PASSWORD = 'Hrithik2211#';
+
+
+--SELECT * FROM sys.database_credentials;
+
+--DROP DATABASE SCOPED CREDENTIAL hrithikadmin;
+
+CREATE EXTERNAL FILE FORMAT extfileformat WITH (
+    FORMAT_TYPE = PARQUET,
+    DATA_COMPRESSION = 'org.apache.hadoop.io.compress.SnappyCodec'
+);
+
+CREATE EXTERNAL DATA SOURCE goldlayer WITH (
+    LOCATION = 'https://hrithikstorageolist.dfs.core.windows.net/olistdata/gold/',
+    CREDENTIAL = hrithikadmin
+);
+
+CREATE EXTERNAL TABLE gold.finaltable WITH (
+        LOCATION = 'finalserving',
+        DATA_SOURCE = goldlayer,
+        FILE_FORMAT = extfileformat
+) AS
+SELECT * FROM gold.final2;
+
+
+
+select * from gold.finaltable
+
+select * from gold.final2
